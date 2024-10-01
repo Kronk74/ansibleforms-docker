@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Release.Name }}-server"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: server
+    app.kubernetes.io/instance: server
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: ansibleforms
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/version: {{ .Chart.Version | quote }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: server
+  template: 
+    app.kubernetes.io/name: server
+    app.kubernetes.io/instance: server
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: ansibleforms
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/version: {{ .Chart.Version | quote }}
+  replicas: {{ .Values.server.replicas | default 1 }}
+  strategy:
+    type: {{ .Values.server.strategyType | default "Recreate" }}
+  template:
+    spec:
+      containers:
+        - image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+          name: server
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: ansibleforms-secrets
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: ansibleforms-secrets
+                  key: DB_PORT
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ansibleforms-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ansibleforms-secrets
+                  key: DB_PASSWORD
+            {{- with .Values.server.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.server.resources }}
+          resources:
+            limits:
+              cpu: {{ .Values.server.resources.limits.cpu | default "0.5" }}
+              memory: {{ .Values.server.resources.limits.memory | default "512Mi" }}
+            requests:
+              cpu: {{ .Values.server.resources.requests.cpu | default "0.25" }}
+              memory: {{ .Values.server.resources.requests.memory | default "256Mi" }}
+          {{ end }}
+          stdin: {{ .Values.server.stdin | default true }}
+          tty: {{ .Values.server.tty | default true }}
+          {{- if .Values.server.persistence.enabled }}
+          volumeMounts:
+            - mountPath: /app/dist/persistent
+              name: {{ .Release.Name }}-server-volume
+          {{ end }}
+      restartPolicy: Always
+      {{ if .Values.server.persistence.enabled }}
+      volumes:
+        - name: {{ .Release.Name }}-server-volume
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-server-pvc
+      {{ end }}
