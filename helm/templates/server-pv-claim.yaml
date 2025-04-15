@@ -24,4 +24,3 @@ spec:
     requests:
       storage: {{ .Values.server.persistence.ssh_size | default "100Mi" }}
 {{- end -}}
-{{- end -}}

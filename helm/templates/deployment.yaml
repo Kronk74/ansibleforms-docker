@@ -26,8 +26,6 @@ spec:
         app.kubernetes.io/part-of: ansibleforms
         app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
         app.kubernetes.io/version: {{ .Chart.Version | quote }}
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/form-yaml-configmap.yaml") . | sha256sum }}
     spec:
       {{ if .Values.server.image_pullSecrets }}
       imagePullSecrets:

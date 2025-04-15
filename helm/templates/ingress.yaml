@@ -14,25 +14,19 @@ spec:
   ingressClassName: {{ .Values.server.ingress.className }}
   {{- if .Values.server.ingress.tls }}
   tls:
-    {{- range .Values.server.ingress.tls }}
     - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}
-    {{- end }}
+        - {{ .Values.server.ingress.host_name | quote }}
+      secretName: {{ .Values.server.ingress.tls.secretName }}
   {{- end }}
   rules:
-    {{- range .Values.server.ingress.hosts }}
-    - host: {{ .host | quote }}
+    - host: {{ .Values.server.ingress.host_name | quote }}
       http:
         paths:
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
+          - path: /
+            pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-server
+                name: {{ $.Release.Name }}-server
                 port:
-                  number: {{ .Values.server.service.port }}
-    {{- end }}
+                  number: {{ $.Values.server.service.port }}
 {{- end }}

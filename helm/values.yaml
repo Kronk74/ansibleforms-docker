@@ -17,13 +17,9 @@ server:
     port: 8443
 
   ingress:
-    enabled: false
-    className: ""
-    hosts:
-      - host: chart-example.local
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
+    enabled: true
+    className: "nginx"
+    host_name: "ansibleforms.local"
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
