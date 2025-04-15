@@ -17,6 +17,22 @@ Simply follow the instructions on (https://ansibleforms.com)
 
 # How to use helm chart ?
 
+## Requirements
+
+Add bitnami Chart repo :
+
+```
+helm repo add mysql https://charts.bitnami.com/bitnami
+```
+
+Build helm dependency :
+```
+cd helm
+helm dependency build
+```
+
+## Installation
+
 Example to deploy in a `ansibleforms-dev` namespace :
 
 `helm install --namespace ansibleforms-dev ansibleform .`

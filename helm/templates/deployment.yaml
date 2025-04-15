@@ -29,8 +29,10 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/form-yaml-configmap.yaml") . | sha256sum }}
     spec:
+      {{ if .Values.server.image_pullSecrets }}
       imagePullSecrets:
         - name: {{ .Values.server.image.pullSecret }}
+      {{ end }}
       containers:
         - image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
           name: server
@@ -59,6 +61,10 @@ spec:
                   key: DB_PASSWORD
             - name: PYTHONPATH
               value: /usr/lib/python311.zip:/usr/lib/python3.11:/usr/lib/python3.11/lib-dynload:/usr/lib/python3.11/site-packages:/app/dist/persistent/python/lib
+            - name: ENABLE_FORMS_YAML_IN_DATABASE
+              value: '1'
+            - name: ALLOW_SCHEMA_CREATION
+              value: '1'
             {{- with .Values.server.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -78,22 +84,25 @@ spec:
               name: {{ .Release.Name }}-data
             - mountPath: /.ssh
               name: {{ .Release.Name }}-ssh
-            - name: {{ .Release.Name }}-forms-yaml
-              mountPath: /app/dist/persistent/forms.yaml
-              subPath: config
+            #- name: {{ .Release.Name }}-forms-yaml
+            #  mountPath: /app/dist/persistent/forms.yaml
+            #  subPath: config
       restartPolicy: Always
       volumes:
         {{ if .Values.server.persistence.enabled }}
-        - name: {{ .Release.Name }}-server-volume
+        - name: {{ .Release.Name }}-data
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-data
+        - name: {{ .Release.Name }}-ssh
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-ssh
         {{ else }}
         - name: {{ .Release.Name }}-data
           emptyDir: {}
         {{ end }}
         - name: {{ .Release.Name }}-ssh
           emptyDir: {}
-        - name: {{ .Release.Name }}-forms-yaml
-          configMap:
-            name: {{ .Release.Name }}-forms-yaml
-            defaultMode: 420
+        #- name: {{ .Release.Name }}-forms-yaml
+        #  configMap:
+        #    name: {{ .Release.Name }}-forms-yaml
+        #    defaultMode: 420

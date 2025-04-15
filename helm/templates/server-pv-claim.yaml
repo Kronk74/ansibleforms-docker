@@ -2,12 +2,26 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "{{ .Release.Name }}-server-pvc"
+  name: "{{ .Release.Name }}-data"
   namespace: {{ .Release.Namespace | quote }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.server.persistence.size | default "100Mi" }}
+      storage: {{ .Values.server.persistence.data_size | default "100Mi" }}
+---
+...
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Release.Name }}-ssh"
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.server.persistence.ssh_size | default "100Mi" }}
+{{- end -}}
 {{- end -}}
